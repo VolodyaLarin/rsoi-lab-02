@@ -25,7 +25,7 @@ func (g GormBonusRepo) getBonuses(ctx context.Context, username string) (error, 
 			Status:   bonus.PrivelegeBronze,
 			Balance:  0,
 		}
-		err = nil
+		err = g.db.Save(&model).Error
 	}
 
 	if err != nil {
