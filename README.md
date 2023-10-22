@@ -36,7 +36,7 @@
 1. Для разработки можно использовать Postgres в docker, для этого нужно запустить docker compose up -d, поднимется
    контейнер с Postgres 13, и будут созданы соответствующие вашему варианту (описанные в
    файлах [schema-$VARIANT](postgres/scripts)) базы данных и пользователь `program`:`test`.
-2. Для создания базы нужно прописать в [20-create-schemas.sh](postgres/20-create-databases.sh) свой вариант задания в
+2. Для создания базы нужно прописать в [20-create-schemas.sh](postgres/20-create-databases.sql) свой вариант задания в
 3. Docker Compose позволяет выполнять сборку образа, для этого нужно прописать
    блок [`build`](https://docs.docker.com/compose/compose-file/build/).
 4. Горизонтальную коммуникацию между сервисами делать нельзя.
