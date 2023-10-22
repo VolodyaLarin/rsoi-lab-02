@@ -5,26 +5,30 @@ import bodyParser from "body-parser";
 
 import os from 'os'
 
+const axiosLogger = request => {
+    console.log('Request: ', JSON.stringify(request, null, 2))
+    return request
+}
+
 const ticketService = new axios.Axios({
     baseURL: process.env.TICKET_SERVICE_URL || "http://localhost:8070/api/v1/tickets",
 })
+ticketService.interceptors.request.use(axiosLogger)
 
 const bonusService = new axios.Axios({
     baseURL: process.env.BONUS_SERVICE_URL || "http://localhost:8050/api/v1/bonus",
 })
+bonusService.interceptors.request.use(axiosLogger)
 
 const flightService = new axios.Axios({
     baseURL: process.env.FLIGHT_SERVICE_URL || "http://localhost:8060/api/v1/flights",
 })
+flightService.interceptors.request.use(axiosLogger)
 
-axios.interceptors.request.use(request => {
-    console.log('Request: ', JSON.stringify(request, null, 2))
-    return request
-})
 
 
 const generateQuery = (data) => {
-    return Object.entries(data).map((kv) => Array.isArray(kv[0]) ?
+    return Object.entries(data).map((kv) => Array.isArray(kv[1]) ?
         kv[1].map(v => `${encodeURIComponent(kv[0])}[]=${encodeURIComponent(v)}`).join('&')
         : `${encodeURIComponent(kv[0])}=${encodeURIComponent(kv[1])}`).join('&')
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/ticket/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -30,7 +31,7 @@ func (h TicketHandlerV1) list(ctx *gin.Context) {
 		return
 	}
 
-	uidQ := ctx.QueryArray("uid")
+	uidQ := ctx.QueryArray("uids[]")
 	var uids []uuid.UUID
 	for _, i := range uidQ {
 		uid, err := uuid.Parse(i)
@@ -40,6 +41,7 @@ func (h TicketHandlerV1) list(ctx *gin.Context) {
 		}
 		uids = append(uids, uid)
 	}
+	log.Warning(uidQ)
 
 	err, tickets := h.uc.List(ctx, &bonus.TicketFilter{
 		Username: username,

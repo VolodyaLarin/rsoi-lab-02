@@ -36,7 +36,7 @@ func (g GormTicketRepo) List(ctx context.Context, filter bonus.TicketFilter) (er
 		Username: filter.Username,
 	})
 	if len(filter.Uids) != 0 {
-		query = query.Where("ticket_uuid in ?", filter.Uids)
+		query = query.Where("ticket_uid in ?", filter.Uids)
 	}
 
 	err := query.Find(&tickets).Error
