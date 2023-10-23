@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
 	"os"
 )
 
@@ -32,6 +33,10 @@ func main() {
 
 	uc := usecase.NewBonusUsecase(repo)
 	handler.NewBonusHandlerV1(uc).RegisterRoutes(apiV1R)
+
+	r.GET("/manage/health", func(context *gin.Context) {
+		context.Status(http.StatusOK)
+	})
 
 	r.Run(":8080")
 }

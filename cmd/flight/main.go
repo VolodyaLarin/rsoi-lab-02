@@ -5,6 +5,7 @@ import (
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/flight/usecase"
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func main() {
@@ -25,6 +26,10 @@ func main() {
 
 	ticketUc := &usecase.FlightUsecase{}
 	handler.NewFlightHandlerV1(ticketUc).RegisterRoutes(apiV1R)
+
+	r.GET("/manage/health", func(context *gin.Context) {
+		context.Status(http.StatusOK)
+	})
 
 	r.Run(":8080")
 }

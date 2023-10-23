@@ -1,44 +1,10 @@
 import express from "express"
-import axios from "axios"
 import morgan from "morgan"
 import bodyParser from "body-parser";
 
-import os from 'os'
-
-const axiosLogger = request => {
-    console.log('Request: ', JSON.stringify(request, null, 2))
-    return request
-}
-
-const ticketService = new axios.Axios({
-    baseURL: process.env.TICKET_SERVICE_URL || "http://localhost:8070/api/v1/tickets",
-})
-ticketService.interceptors.request.use(axiosLogger)
-
-const bonusService = new axios.Axios({
-    baseURL: process.env.BONUS_SERVICE_URL || "http://localhost:8050/api/v1/bonus",
-})
-bonusService.interceptors.request.use(axiosLogger)
-
-const flightService = new axios.Axios({
-    baseURL: process.env.FLIGHT_SERVICE_URL || "http://localhost:8060/api/v1/flights",
-})
-flightService.interceptors.request.use(axiosLogger)
-
-
-
-const generateQuery = (data) => {
-    return Object.entries(data).map((kv) => Array.isArray(kv[1]) ?
-        kv[1].map(v => `${encodeURIComponent(kv[0])}[]=${encodeURIComponent(v)}`).join('&')
-        : `${encodeURIComponent(kv[0])}=${encodeURIComponent(kv[1])}`).join('&')
-}
-
-const genUsernameHeaders = (username) => ({
-    headers: {
-        'X-USER-NAME': String(username),
-        'Content-type': 'application/json'
-    }
-})
+import {TicketService} from "./services/ticketService.js";
+import {BonusService} from "./services/bonusService.js";
+import {FlightService} from "./services/flightService.js";
 
 
 const app = express()
@@ -49,17 +15,14 @@ app.use(bodyParser())
 const router = express.Router()
 
 router.get('/flights', async (req, resp) => {
-    const page = req.query.page || "0"
+    const page = req.query.page || "1"
     const size = req.query.size || "100"
     try {
-        const request = await flightService.get(`/?${generateQuery({
-            page, size
-        })}`)
+        const flights = await FlightService.GetFlights(page, size);
 
-        resp.status(request.status).json(JSON.parse(request.data));
+        resp.json(flights);
         return
     } catch (err) {
-        console.log(err)
         resp.sendStatus(502)
     }
 })
@@ -68,28 +31,21 @@ router.get('/flights', async (req, resp) => {
 const ticketsFill = async (tickets) => {
     const flightsNumbers = [...new Set(tickets.map(x => x.flightNumber))]
 
-    let flights = []
+    const flights = []
 
     try {
-        const response = await flightService.get(`/?${generateQuery({
-            uids: flightsNumbers
-        })}`)
-        if (response.status === 200) {
-            flights = JSON.parse(response.data).items
-        }
-    } catch {
-
+        const res = await FlightService.GetFlights(1, Math.max(1000, tickets.length), flightsNumbers)
+        flights.push(...res.items)
+    } catch (err) {
+        console.log(err)
     }
 
     return tickets.map((x) => {
         const flight = flights.find(z => z.flightNumber === x.flightNumber) || {
-            fromAirport: "A1",
-            toAirport: "A2",
-            date: '2000-02-02T20:00:00Z'
+            fromAirport: "A1", toAirport: "A2", date: '2000-02-02T20:00:00Z'
         }
         return {
-            ...x,
-            ...flight
+            ...x, ...flight
         }
     })
 }
@@ -98,14 +54,7 @@ router.get('/tickets', async (req, resp) => {
     const username = req.header('X-USER-NAME')
 
     try {
-        const request = await ticketService.get(`/`, genUsernameHeaders(username))
-        if (request.status !== 200) {
-            return resp.sendStatus(request.status)
-        }
-
-        const data = JSON.parse(request.data)
-
-
+        const data = await TicketService.GetTickets(username)
         resp.json(await ticketsFill(data))
     } catch (err) {
         console.log(err)
@@ -121,19 +70,11 @@ router.get('/tickets/:uid', async (req, resp) => {
     const uid = req.params.uid
 
     try {
-        const request = await ticketService.get(`/?${generateQuery({
-            uids: [uid]
-        })}`, genUsernameHeaders(username))
-        if (request.status !== 200) {
-            return resp.sendStatus(request.status)
-        }
-        const data = JSON.parse(request.data)
-
+        const data = await TicketService.GetTickets(username, [uid])
         if (data.length === 0) {
             return resp.sendStatus(404)
         }
-
-        resp.json((await ticketsFill(data))[0])
+        resp.json((await ticketsFill([data[0]]))[0])
 
     } catch (err) {
         console.log(err)
@@ -148,30 +89,27 @@ router.get('/me', async (req, resp) => {
     const username = req.header('X-USER-NAME')
 
     let privilege = {
-        balance: 0,
-        status: "BRONZE"
+        balance: 0, status: "BRONZE"
     }
     let tickets = []
 
     try {
-        const request = await bonusService.get(`/`, genUsernameHeaders(username))
-        const data = JSON.parse(request.data)
+        const data = await BonusService.GetBonusDetails(username)
         privilege.status = data.status
         privilege.balance = data.balance
     } catch (err) {
         console.log(err)
     }
     try {
-        const request = await ticketService.get(`/`, genUsernameHeaders(username))
-        tickets = await ticketsFill(JSON.parse(request.data))
+        const data = await TicketService.GetTickets(username)
+        tickets = await ticketsFill(data)
     } catch (err) {
         console.log(err)
     }
 
 
     resp.json({
-        tickets,
-        privilege
+        tickets, privilege
     })
 })
 
@@ -180,9 +118,7 @@ router.get('/privilege', async (req, resp) => {
     const username = req.header('X-USER-NAME')
 
     try {
-        const request = await bonusService.get(`/`, genUsernameHeaders(username))
-        const data = JSON.parse(request.data)
-
+        const data = await BonusService.GetBonusDetails(username)
         resp.send(data)
     } catch (err) {
         console.log(err)
@@ -198,29 +134,28 @@ router.post('/tickets', async (req, resp) => {
     const price = req.body.price
     const paidFromBalance = req.body.paidFromBalance
 
+    let ticket = null
+    try {
+        ticket = await TicketService.CreateTicket(flightNumber, price, username)
+    } catch (err) {
+        console.log(err)
+        resp.send(500)
+        return
+    }
+    let bonusesItem = null;
+    try {
+        bonusesItem = await BonusService.CreateBonusItem(flightNumber, price, paidFromBalance, ticket.ticketUid, username)
+    } catch (err) {
+        console.log(err);
 
-    const ticketResp = await ticketService.post('/', JSON.stringify({
-        flightNumber,
-        price,
-    }), genUsernameHeaders(username))
+        await TicketService.DeleteTicket(ticket.ticketUid, username)
 
-    const ticket = JSON.parse(ticketResp.data)
-
-
-    const bonusResp = await bonusService.post('/', JSON.stringify({
-        flightNumber,
-        price,
-        paidFromBalance,
-        ticketUid: ticket.ticketUid
-    }), genUsernameHeaders(username))
-
-
-    const bonusesItem = JSON.parse(bonusResp.data)
+        resp.sendStatus(500)
+        return
+    }
 
     console.log(bonusesItem)
-
     const bonuses = bonusesItem.item.operationType === 'DEBIT_THE_ACCOUNT' ? bonusesItem.item.balanceDiff : 0
-
 
     const ticketDetailed = (await ticketsFill([ticket]))[0]
 
@@ -228,23 +163,32 @@ router.post('/tickets', async (req, resp) => {
     const paidByBonuses = bonuses
 
     resp.status(200).json({
-        ...ticketDetailed,
-        paidByBonuses,
-        paidByMoney,
-        privilege: bonusesItem.privelege
+        ...ticketDetailed, paidByBonuses, paidByMoney, privilege: bonusesItem.privelege
     })
 
     return
 })
 
+
 router.delete('/tickets/:uid', async (req, resp) => {
     const username = req.header('X-USER-NAME')
-
     const uid = req.params.uid
 
-    const ticketResp = await ticketService.delete(`/${uid}`, genUsernameHeaders(username))
-    const bonusResp = await bonusService.delete(`/${uid}`, genUsernameHeaders(username))
+    try {
+        await TicketService.DeleteTicket(uid, username)
+    } catch (err) {
+        console.log(err)
 
+        resp.sendStatus(500)
+        return
+    }
+
+    try {
+        await BonusService.DeleteBonusItem(uid, username)
+    } catch {
+        resp.sendStatus(500)
+        return
+    }
     resp.sendStatus(204)
 
     return

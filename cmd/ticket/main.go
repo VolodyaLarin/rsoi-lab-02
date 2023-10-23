@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
 	"os"
 )
 
@@ -33,6 +34,10 @@ func main() {
 	rep := repo.NewTicketRepo(db)
 	ticketUc := usecase.NewTicketUsecase(rep)
 	handler.NewTicketHandlerV1(ticketUc).RegisterRoutes(apiV1R)
+
+	r.GET("/manage/health", func(context *gin.Context) {
+		context.Status(http.StatusOK)
+	})
 
 	r.Run(":8080")
 }
