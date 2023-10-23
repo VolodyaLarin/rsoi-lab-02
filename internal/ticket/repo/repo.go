@@ -32,7 +32,7 @@ func modelToDto(model TicketModel) bonus.TicketDto {
 func (g GormTicketRepo) List(ctx context.Context, filter bonus.TicketFilter) (error, []bonus.TicketDto) {
 	var tickets []TicketModel
 
-	query := g.db.Model(&TicketModel{
+	query := g.db.Where(&TicketModel{
 		Username: filter.Username,
 	})
 	if len(filter.Uids) != 0 {
@@ -48,8 +48,8 @@ func (g GormTicketRepo) List(ctx context.Context, filter bonus.TicketFilter) (er
 }
 
 func (g GormTicketRepo) FindTicketByUid(ctx context.Context, uuid uuid.UUID) (error, *bonus.TicketDto) {
-	ticket := TicketModel{}
-	err := g.db.Model(TicketModel{TicketUid: uuid}).First(&ticket).Error
+	ticket := TicketModel{TicketUid: uuid}
+	err := g.db.Where(ticket).First(&ticket).Error
 	if err != nil {
 		return err, nil
 	}

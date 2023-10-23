@@ -41,21 +41,20 @@ jobs:
         run: docker compose build
 
       - name: Run containers
-        timeout-minutes: 10
+        timeout-minutes: 5
         run: |
           docker compose up -d
           ./scripts/wait-script.sh
         env:
-          WAIT_PORTS: 8080
+          WAIT_PORTS: 8080,8070,8060,8050
 
       - name: Run API Tests
-        uses: matt-ball/newman-action@master
-        with:
-          # TODO insert your variant
-          collection: v1/postman/collection.json
-          environment: v1/postman/environment.json
-          delayRequest: 100
-          reporters: '[ "cli" ]'
+        timeout-minutes: 5
+        run: ./scripts/test-script.sh
+        env:
+          VARIANT: v1
+          SERVICE_NAME: bonus
+          PORT_NUMBER: 8050
 
       - uses: education/autograding@v1
         id: autograder

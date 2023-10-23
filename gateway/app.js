@@ -88,9 +88,7 @@ router.get('/tickets/:uid', async (req, resp) => {
 router.get('/me', async (req, resp) => {
     const username = req.header('X-USER-NAME')
 
-    let privilege = {
-        balance: 0, status: "BRONZE"
-    }
+    let privilege = {}
     let tickets = []
 
     try {
@@ -122,7 +120,9 @@ router.get('/privilege', async (req, resp) => {
         resp.send(data)
     } catch (err) {
         console.log(err)
-        resp.send(502)
+        resp.json(503, {
+            message: "Bonus Service unavailable"
+        })
     }
 })
 
@@ -139,7 +139,9 @@ router.post('/tickets', async (req, resp) => {
         ticket = await TicketService.CreateTicket(flightNumber, price, username)
     } catch (err) {
         console.log(err)
-        resp.send(500)
+        resp.json(503, {
+            message: "Bonus Service unavailable"
+        })
         return
     }
     let bonusesItem = null;
@@ -150,11 +152,12 @@ router.post('/tickets', async (req, resp) => {
 
         await TicketService.DeleteTicket(ticket.ticketUid, username)
 
-        resp.sendStatus(500)
+        resp.json(503, {
+            message: "Bonus Service unavailable"
+        })
         return
     }
 
-    console.log(bonusesItem)
     const bonuses = bonusesItem.item.operationType === 'DEBIT_THE_ACCOUNT' ? bonusesItem.item.balanceDiff : 0
 
     const ticketDetailed = (await ticketsFill([ticket]))[0]

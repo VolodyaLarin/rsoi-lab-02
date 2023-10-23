@@ -3,7 +3,7 @@ import {axiosLogger, generateQuery} from "./utils.js";
 import {CreateBreakerContext, DecorateBreaker} from "./cicuitBreakerDecorator.js";
 
 const baseURL = process.env.FLIGHT_SERVICE_URL || "http://localhost:8060/api/v1/flights"
-export const FlightService = {
+const FlightService = {
     _service: new axios.Axios({
         baseURL,
     }), GetFlights: async function (page = 1, size = 100, flightsNumbers = []) {
@@ -21,3 +21,5 @@ FlightService._service.interceptors.request.use(axiosLogger)
 const ctx = CreateBreakerContext((new URL(baseURL).origin + '/manage/health'))
 
 FlightService.GetFlights = DecorateBreaker(ctx, FlightService.GetFlights.bind(FlightService))
+
+export {FlightService}

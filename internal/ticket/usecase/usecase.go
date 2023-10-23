@@ -23,6 +23,7 @@ func (uc TicketUsecase) List(ctx context.Context, filter *bonus.TicketFilter) (e
 func (uc TicketUsecase) Buy(ctx context.Context, username string, flightNumber string, price int64) (error, *bonus.TicketDto) {
 	return uc.repo.SaveTicket(ctx, bonus.TicketDto{
 		TicketUid:    uuid.New(),
+		Username:     username,
 		FlightNumber: flightNumber,
 		Price:        int(price),
 		Status:       string(repo.TicketPaid),

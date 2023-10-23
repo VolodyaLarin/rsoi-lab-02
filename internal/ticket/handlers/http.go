@@ -94,6 +94,7 @@ func (h TicketHandlerV1) delete(ctx *gin.Context) {
 
 	err, _ = h.uc.Cancel(ctx, username, uid)
 	if err != nil {
+		log.Error(err)
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return
 	}
