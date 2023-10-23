@@ -62,3 +62,25 @@ func TestBonusUsecase_MinusFromPayment(t *testing.T) {
 	assert.Nil(t, item)
 	assert.Nil(t, b)
 }
+
+func TestBonusUsecase_PlusFromPayment(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	repo := mock_bonus.NewMockIBonusRepo(ctrl)
+
+	uc := NewBonusUsecase(repo)
+
+	repo.EXPECT().CreateBonusOperation(gomock.Any(), gomock.Eq("testusername"), gomock.Cond(func(x any) bool {
+		dto, ok := x.(bonus.BonusHistoryDto)
+		if !ok {
+			return false
+		}
+
+		return dto.OperationType == bonus.PrivilegeHistoryFill && dto.BalanceDiff == 40
+	})).Return(nil, nil, nil).Times(1)
+
+	err, item, b := uc.PlusFromPayment(context.Background(), "testusername", uuid.UUID{}, 400, false)
+
+	assert.Nil(t, err)
+	assert.Nil(t, item)
+	assert.Nil(t, b)
+}
