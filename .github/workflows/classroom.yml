@@ -32,9 +32,9 @@ jobs:
         run:  docker compose build
 
       - name: Docker Hub login
-        with:
-          PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        run: echo "$PASSWORD" | docker login -u volodyalarin --password-stdin
+        env:
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: echo "DOCKERHUB_PASSWORD" | docker login -u volodyalarin --password-stdin
 
       - name: Docker Publish
         run: docker compose push
