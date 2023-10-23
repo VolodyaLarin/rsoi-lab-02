@@ -2,6 +2,9 @@ name: GitHub Classroom Workflow
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches:
+      - master
 jobs:
   build:
     name: Autograding
@@ -24,7 +27,19 @@ jobs:
           go test -v ./... | go-junit-report -set-exit-code > report.xml
         continue-on-error: true
 
-      # TODO build, publish to docker hub, deploy to k8s
+      - name: Docker build
+        timeout-minutes: 10
+        run:  docker compose build
+
+      - name: Docker Hub login
+        with:
+          PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: echo "$PASSWORD" | docker login -u volodyalarin --password-stdin
+
+      - name: Docker Publish
+        run: docker compose push
+
+      # TODO deploy to k8s
 
       - name: Test Summary
         uses: test-summary/action@v2
