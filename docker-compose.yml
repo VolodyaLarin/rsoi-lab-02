@@ -36,8 +36,8 @@ services:
       context: .
       dockerfile: ./flight.Dockerfile
     restart: always
-#    ports:
-#      - "8060:8080"
+    ports:
+      - "127.0.0.1:8060:8080"
     environment:
       DB_DSN: "host=postgres user=program password=flights dbname=db1 port=5432"
     depends_on:
@@ -48,8 +48,8 @@ services:
       context: .
       dockerfile: ./ticket.Dockerfile
     restart: always
-#    ports:
-#      - "8070:8080"
+    ports:
+      - "127.0.0.1:8070:8080"
     environment:
       DB_DSN: "host=postgres user=program password=test dbname=tickets port=5432"
     depends_on:
