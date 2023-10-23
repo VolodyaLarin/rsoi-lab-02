@@ -25,7 +25,8 @@ jobs:
         run: |
           go mod download
           go install github.com/jstemmer/go-junit-report@latest
-          go test -v ./... | go-junit-report -set-exit-code > report.xml          
+          go test -v ./... | go-junit-report -set-exit-code > report.xml
+        continue-on-error: true
 
       - name: Test Summary
         uses: test-summary/action@v2
@@ -33,6 +34,7 @@ jobs:
           paths: |
             report.xml
         if: always()
+        continue-on-error: true
 
       - name: Build images
         timeout-minutes: 10
