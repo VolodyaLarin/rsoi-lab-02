@@ -194,6 +194,9 @@ router.delete('/tickets/:uid', async (req, resp) => {
     return
 })
 
+
+app.get('/manage/health', (req, resp) => resp.sendStatus(200))
+
 app.use('/api/v1/', router)
 
 app.listen(8080)
