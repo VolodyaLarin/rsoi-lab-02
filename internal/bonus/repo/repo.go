@@ -7,6 +7,7 @@ import (
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 type GormBonusRepo struct {
@@ -109,9 +110,19 @@ func (g GormBonusRepo) DeleteBonusOperationByFlightUid(ctx context.Context, user
 		return err, nil
 	}
 
-	model.Balance -= item.BalanceDiff
-	if model.Balance < 0 {
-		model.Balance = 0
+	diff := -item.BalanceDiff
+	if diff > model.Balance {
+		diff = model.Balance
+	}
+
+	model.Balance += diff
+
+	newItem := PrivilegeHistoryModel{
+		PrivilegeID:   model.ID,
+		TicketUid:     ticketUuid,
+		Datetime:      time.Now(),
+		BalanceDiff:   diff,
+		OperationType: bonus.PrivilegeHistoryDebit,
 	}
 
 	err = g.db.Transaction(func(tx *gorm.DB) error {
@@ -120,7 +131,7 @@ func (g GormBonusRepo) DeleteBonusOperationByFlightUid(ctx context.Context, user
 			return err
 		}
 
-		err = g.db.Delete(&PrivilegeHistoryModel{}, item.ID).Error
+		err = g.db.Save(&newItem).Error
 		if err != nil {
 			return err
 		}
@@ -129,10 +140,10 @@ func (g GormBonusRepo) DeleteBonusOperationByFlightUid(ctx context.Context, user
 	})
 
 	return nil, &bonus.BonusHistoryDto{
-		Date:          item.Datetime,
-		TicketUid:     item.TicketUid,
-		BalanceDiff:   item.BalanceDiff,
-		OperationType: item.OperationType,
+		Date:          newItem.Datetime,
+		TicketUid:     newItem.TicketUid,
+		BalanceDiff:   newItem.BalanceDiff,
+		OperationType: newItem.OperationType,
 	}
 
 }
