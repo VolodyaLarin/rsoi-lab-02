@@ -37,7 +37,12 @@ func (uc BonusUsecase) PlusFromPayment(ctx context.Context, username string, tic
 
 }
 func (uc BonusUsecase) MinusFromPayment(ctx context.Context, username string, ticketUid uuid.UUID, payment int64, draft bool) (error, *bonus.BonusHistoryDto, *bonus.BonusDto) {
-	balanceDiff := -int64(math.Min(200, float64(payment)))
+	err, details := uc.repo.GetBonusDetails(ctx, username)
+	if err != nil {
+		return err, nil, nil
+	}
+
+	balanceDiff := -int64(math.Min(float64(details.Balance), float64(payment)))
 
 	err, history, dto := uc.repo.CreateBonusOperation(ctx, username, bonus.BonusHistoryDto{
 		Date:          time.Now(),
