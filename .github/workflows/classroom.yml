@@ -40,7 +40,7 @@ jobs:
         run: docker compose push
 
       - name: 'DB deploy'
-        uses: 'deliverybot/helm@v1'
+        uses: 'deliverybot/helm@master'
         with:
           release: 'db'
           namespace: 'default'
@@ -54,7 +54,7 @@ jobs:
           KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
       - name: 'APP deploy'
-        uses: 'deliverybot/helm@v1'
+        uses: 'deliverybot/helm@master'
         with:
           release: 'my-app'
           namespace: 'default'
