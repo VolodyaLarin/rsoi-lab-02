@@ -1,0 +1,37 @@
+# Default values for my-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+services:
+  bonus:
+    name: bonus
+    container: volodyalarin/rsoi-bonus
+    replicaCount: 1
+    env:
+      DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy like ""
+    publishUrl: /bonus-service-direct/
+  flight:
+    name: flight
+    container: volodyalarin/rsoi-flight
+    replicaCount: 1
+    env:
+      DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy
+    publishUrl: /flight-service-direct/
+  ticket:
+    name: ticket
+    container: volodyalarin/rsoi-ticket
+    replicaCount: 1
+    env:
+      DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy
+    publishUrl: /ticket-service-direct/
+  gateway:
+    name: gateway
+    container: volodyalarin/rsoi-gateway
+    replicaCount: 1
+    env:
+      TICKET_SERVICE_URL: "http://ticket/api/v1/tickets"
+      BONUS_SERVICE_URL: "http://bonus/api/v1/bonus"
+      FLIGHT_SERVICE_URL: "http://flight/api/v1/flights"
+    publishUrl: /

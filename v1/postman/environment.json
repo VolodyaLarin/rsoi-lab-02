@@ -4,7 +4,7 @@
 	"values": [
 		{
 			"key": "baseUrl",
-			"value": "",
+			"value": "http://192.168.49.2",
 			"enabled": true
 		}
 	],
