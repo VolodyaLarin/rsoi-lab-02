@@ -39,7 +39,39 @@ jobs:
       - name: Docker Publish
         run: docker compose push
 
-      # TODO deploy to k8s
+      - name: 'DB deploy'
+        uses: 'deliverybot/helm@v1'
+        with:
+          release: 'db'
+          namespace: 'default'
+          chart: './k8s/postgres-chart'
+          token: '${{ github.token }}'
+          values: |
+            users:
+              - name: program
+                password: ${{ secrets.DB_PASSWORD }}
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+
+      - name: 'APP deploy'
+        uses: 'deliverybot/helm@v1'
+        with:
+          release: 'my-app'
+          namespace: 'default'
+          chart: './k8s/my-app'
+          token: '${{ github.token }}'
+          values: |
+            bonus:
+              env:
+                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy like ""
+            flight:
+              env:
+                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy
+            ticket:
+              env:
+                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
       - name: Test Summary
         uses: test-summary/action@v2
