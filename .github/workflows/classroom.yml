@@ -70,13 +70,14 @@ jobs:
           --set services.flight.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=flights port=5432" \
           --set services.bonus.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=privileges port=5432"
 
-      - name: Test Summary
-        uses: test-summary/action@v2
+      - name: Run API Tests
+        uses: matt-ball/newman-action@master
         with:
           collection: v1/postman/collection.json
           environment: v1/postman/environment.json
           delayRequest: 100
           reporters: '[ "cli" ]'
+
 
       - uses: education/autograding@v1
         id: autograder
