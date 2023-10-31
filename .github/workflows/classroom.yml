@@ -39,47 +39,34 @@ jobs:
       - name: Docker Publish
         run: docker compose push
 
-#      - name: 'DB deploy'
-#        uses: 'deliverybot/helm@master'
-#        with:
-#          release: 'db'
-#          namespace: 'default'
-#          chart: './k8s/postgres-chart'
-#          token: '${{ github.token }}'
-#          values: |
-#            users:
-#              - name: program
-#                password: ${{ secrets.DB_PASSWORD }}
-#        env:
-#          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
-#      - name: deploy postgres to cluster
-#        uses: wahyd4/kubectl-helm-action@master
-#        env:
-#          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-#        with:
-#          args: |
-#            helm repo add bitnami https://charts.bitnami.com/bitnami
-#            helm upgrade --install postgres -n data bitnami/postgresql
+      - name: Install Helm
+        uses: azure/setup-helm@v3
 
-#      - name: 'APP deploy'
-#        uses: 'deliverybot/helm@master'
-#        with:
-#          release: 'my-app'
-#          namespace: 'default'
-#          chart: './k8s/my-app'
-#          token: '${{ github.token }}'
-#          values: |
-#            bonus:
-#              env:
-#                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy like ""
-#            flight:
-#              env:
-#                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy
-#            ticket:
-#              env:
-#                DB_DSN: "host=db-service user=program password=${{ secrets.DB_PASSWORD }} dbname=postgres port=5432" # add on deploy
-#        env:
-#          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+      - name: Prepare Kube config
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        run: echo "$KUBECONFIG_FILE" > ./kube.config
+
+      - name: 'DB deploy'
+        run: |
+          helm status db
+          export HELM_OPERATION=install
+          helm --kubeconfig ./kube.config status db
+          if [ $? -eq 0 ]
+            then HELM_OPERATION=upgrade
+          fi
+          helm --kubeconfig ~/kube.config $HELM_OPERATION db ./k8s/postgres-chart
+      - name: 'App deploy'
+        run: |
+          export HELM_OPERATION=install
+          helm --kubeconfig ~/kube.config status my-app
+          if [ $? -eq 0 ]
+            then HELM_OPERATION=upgrade
+          fi
+          helm --kubeconfig ~/kube.config $HELM_OPERATION my-app ./k8s/my-app \
+          --set services.ticket.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=postgres port=5432" \
+          --set services.flight.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=flights port=5432" \
+          --set services.bonus.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=privileges port=5432"
 
       - name: Test Summary
         uses: test-summary/action@v2

@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: {{ .Release.Name }}
-          image: "postgres:{{ .Values.version }}"
+          image: "cr.yandex/crpglkmvdvv6g38u5g2f/postgres:{{ .Values.version }}"
           env:
             - name: POSTGRES_USER
               value: {{ .Values.default_database.user }}
