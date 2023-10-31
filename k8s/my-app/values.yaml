@@ -7,28 +7,28 @@ replicaCount: 1
 services:
   bonus:
     name: bonus
-    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-bonus
+    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-bonus:v2
     replicaCount: 1
     env:
       DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy like ""
     publishUrl: /bonus-service-direct/
   flight:
     name: flight
-    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-flight
+    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-flight:v2
     replicaCount: 1
     env:
       DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy
     publishUrl: /flight-service-direct/
   ticket:
     name: ticket
-    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-ticket
+    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-ticket:v2
     replicaCount: 1
     env:
       DB_DSN: "host=db-service user=program password=test dbname=postgres port=5432" # add on deploy
     publishUrl: /ticket-service-direct/
   gateway:
     name: gateway
-    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-gateway
+    container: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-gateway:v2
     replicaCount: 1
     env:
       TICKET_SERVICE_URL: "http://ticket/api/v1/tickets"
