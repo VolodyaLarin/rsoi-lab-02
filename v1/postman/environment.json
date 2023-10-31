@@ -1,10 +1,35 @@
 {
 	"id": "acc90f86-88ad-444e-924e-6f48f6ee7711",
-	"name": "[rsoi][lab4] Flight Service",
+	"name": "[rsoi][lab5] Flight Service",
 	"values": [
 		{
-			"key": "baseUrl",
+			"key": "serviceUrl",
 			"value": "http://158.160.20.173",
+			"enabled": true
+		},
+		{
+			"key": "identityProviderUrl",
+			"value": "http://dev-y3hp3rut2qnex3gw.us.auth0.com",
+			"enabled": true
+		},
+		{
+			"key": "username",
+			"value": "volodyalarin@bk.ru",
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "dev-y3hp3rut2qnex3gw",
+			"enabled": true
+		},
+		{
+			"key": "clientId",
+			"value": "gvBzuozlpQ8y11w5wfoVfhCuLZvKwogW",
+			"enabled": true
+		},
+		{
+			"key": "clientSecret",
+			"value": "T65AGA9VVj_sulBiUOVKt-jo2jyvvT8J2YZQFj_G6kPJuMYSUWcYjEzteLcoH3jX",
 			"enabled": true
 		}
 	],
