@@ -57,15 +57,15 @@ jobs:
           if [ $? -eq 0 ]
             then HELM_OPERATION=upgrade
           fi
-          helm --kubeconfig ~/kube.config $HELM_OPERATION db ./k8s/postgres-chart
+          helm --kubeconfig ./kube.config $HELM_OPERATION db ./k8s/postgres-chart
       - name: 'App deploy'
         run: |
           export HELM_OPERATION=install
-          helm --kubeconfig ~/kube.config status my-app
+          helm --kubeconfig ./kube.config status my-app
           if [ $? -eq 0 ]
             then HELM_OPERATION=upgrade
           fi
-          helm --kubeconfig ~/kube.config $HELM_OPERATION my-app ./k8s/my-app \
+          helm --kubeconfig ./kube.config $HELM_OPERATION my-app ./k8s/my-app \
           --set services.ticket.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=postgres port=5432" \
           --set services.flight.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=flights port=5432" \
           --set services.bonus.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=privileges port=5432"
