@@ -8,13 +8,70 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_DB: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U program -d tickets" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
 
-# TODO добавить сервисы
+  bonus:
+    build:
+      context: .
+      dockerfile: ./bonus.Dockerfile
+    image: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-bonus
+    restart: always
+    ports:
+      - "127.0.0.1:8050:8080"
+    environment:
+      DB_DSN: "host=postgres user=program password=test dbname=privileges port=5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  flight:
+    build:
+      context: .
+      dockerfile: ./flight.Dockerfile
+    image: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-flight
+    restart: always
+    ports:
+      - "127.0.0.1:8060:8080"
+    environment:
+      DB_DSN: "host=postgres user=program password=flights dbname=db1 port=5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  ticket:
+    build:
+      context: .
+      dockerfile: ./ticket.Dockerfile
+    image: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-ticket
+    restart: always
+    ports:
+      - "127.0.0.1:8070:8080"
+    environment:
+      DB_DSN: "host=postgres user=program password=test dbname=tickets port=5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  gateway:
+    build: ./gateway
+    image: cr.yandex/crpglkmvdvv6g38u5g2f/rsoi-gateway
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      TICKET_SERVICE_URL: "http://ticket:8080/api/v1/tickets"
+      BONUS_SERVICE_URL: "http://bonus:8080/api/v1/bonus"
+      FLIGHT_SERVICE_URL: "http://flight:8080/api/v1/flights"
+    depends_on:
+      - ticket
+      - bonus
+      - flight
 
 volumes:
   db-data:

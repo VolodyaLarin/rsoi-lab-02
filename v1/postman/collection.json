@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "6a65c85e-f601-4a7e-9d78-ef46b38321f1",
-		"name": "[rsoi][lab2] Flight Service",
+		"name": "[rsoi][lab4] Flight Service",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -794,7 +794,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:8080"
+			"value": ""
 		},
 		{
 			"key": "flightNumber",
