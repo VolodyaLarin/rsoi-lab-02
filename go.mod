@@ -3,6 +3,7 @@ module github.com/VolodyaLarin/rsoi-lab-02
 go 1.20
 
 require (
+	github.com/MicahParks/keyfunc v1.9.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.1
