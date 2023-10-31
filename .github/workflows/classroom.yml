@@ -59,6 +59,8 @@ jobs:
           fi
           helm --kubeconfig ./kube.config $HELM_OPERATION db ./k8s/postgres-chart
       - name: 'App deploy'
+        env:
+          POSTGRES_PASSWORD: 'test'
         run: |
           export HELM_OPERATION=install
           helm --kubeconfig ./kube.config status my-app
