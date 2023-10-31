@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/VolodyaLarin/rsoi-lab-02/internal/jwt_auth"
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/ticket"
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/ticket/usecase"
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ func NewTicketHandlerV1(uc *usecase.TicketUsecase) *TicketHandlerV1 {
 }
 
 func (p TicketHandlerV1) RegisterRoutes(router gin.IRouter) {
+	router.Use(jwt_auth.AuthMiddleware)
 
 	router.GET("/tickets/", p.list)
 	router.POST("/tickets/", p.create)
@@ -25,7 +27,7 @@ func (p TicketHandlerV1) RegisterRoutes(router gin.IRouter) {
 }
 
 func (h TicketHandlerV1) list(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, nil)
 		return
@@ -61,7 +63,7 @@ type TicketCreate struct {
 }
 
 func (h TicketHandlerV1) create(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, nil)
 		return
@@ -85,7 +87,7 @@ func (h TicketHandlerV1) create(ctx *gin.Context) {
 }
 
 func (h TicketHandlerV1) delete(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	uid, err := uuid.Parse(ctx.Param("uid"))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, nil)

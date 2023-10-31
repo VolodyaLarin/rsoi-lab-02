@@ -3,6 +3,7 @@ package handlers
 import (
 	bonus2 "github.com/VolodyaLarin/rsoi-lab-02/internal/bonus"
 	"github.com/VolodyaLarin/rsoi-lab-02/internal/bonus/usecase"
+	"github.com/VolodyaLarin/rsoi-lab-02/internal/jwt_auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -17,6 +18,7 @@ func NewBonusHandlerV1(uc *usecase.BonusUsecase) *BonusHandlerV1 {
 }
 
 func (p BonusHandlerV1) RegisterRoutes(router gin.IRouter) {
+	router.Use(jwt_auth.AuthMiddleware)
 
 	router.GET("/bonus/", p.list)
 	router.POST("/bonus/", p.create)
@@ -24,7 +26,7 @@ func (p BonusHandlerV1) RegisterRoutes(router gin.IRouter) {
 }
 
 func (h BonusHandlerV1) list(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, nil)
 		return
@@ -47,7 +49,7 @@ type BonusDetails struct {
 }
 
 func (h BonusHandlerV1) create(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	if username == "" {
 		ctx.JSON(http.StatusBadRequest, nil)
 		return
@@ -88,7 +90,7 @@ func (h BonusHandlerV1) create(ctx *gin.Context) {
 }
 
 func (h BonusHandlerV1) delete(ctx *gin.Context) {
-	username := ctx.GetHeader("X-User-Name")
+	username := ctx.GetString("x-username")
 	uid, err := uuid.Parse(ctx.Param("uid"))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, nil)

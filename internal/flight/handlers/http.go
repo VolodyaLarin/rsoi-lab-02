@@ -24,7 +24,6 @@ func NewFlightHandlerV1(uc *usecase.FlightUsecase) *FlightHandlerV1 {
 }
 
 func (p FlightHandlerV1) RegisterRoutes(router gin.IRouter) {
-
 	router.GET("/flights/", p.list)
 }
 

@@ -14,7 +14,22 @@ app.use(bodyParser())
 
 const router = express.Router()
 
-router.get('/flights', async (req, resp) => {
+const JWTParse= async (req, resp, next) => {
+    function parseJwt (token) {
+        return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    }
+
+    try {
+        const jwt = parseJwt(req.header('Authorization').replace("Bearer ", ""))
+        console.log(jwt)
+        next()
+    } catch (err) {
+        resp.status(401).json({})
+    }
+}
+
+
+router.get('/flights', JWTParse,  async (req, resp) => {
     const page = req.query.page || "1"
     const size = req.query.size || "100"
     try {
@@ -50,8 +65,8 @@ const ticketsFill = async (tickets) => {
     })
 }
 
-router.get('/tickets', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.get('/tickets', JWTParse, async (req, resp) => {
+    const username = req.header('Authorization')
 
     try {
         const data = await TicketService.GetTickets(username)
@@ -65,8 +80,8 @@ router.get('/tickets', async (req, resp) => {
 })
 
 
-router.get('/tickets/:uid', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.get('/tickets/:uid', JWTParse, async (req, resp) => {
+    const username = req.header('Authorization')
     const uid = req.params.uid
 
     try {
@@ -85,8 +100,8 @@ router.get('/tickets/:uid', async (req, resp) => {
 })
 
 
-router.get('/me', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.get('/me',JWTParse, async (req, resp) => {
+    const username = req.header('Authorization')
 
     let privilege = {}
     let tickets = []
@@ -112,8 +127,8 @@ router.get('/me', async (req, resp) => {
 })
 
 
-router.get('/privilege', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.get('/privilege', JWTParse, async (req, resp) => {
+    const username = req.header('Authorization')
 
     try {
         const data = await BonusService.GetBonusDetails(username)
@@ -127,8 +142,8 @@ router.get('/privilege', async (req, resp) => {
 })
 
 
-router.post('/tickets', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.post('/tickets', JWTParse, async (req, resp) => {
+    const username = req.header('Authorization')
 
     const flightNumber = req.body.flightNumber
     const price = req.body.price
@@ -173,8 +188,8 @@ router.post('/tickets', async (req, resp) => {
 })
 
 
-router.delete('/tickets/:uid', async (req, resp) => {
-    const username = req.header('X-USER-NAME')
+router.delete('/tickets/:uid',JWTParse,  async (req, resp) => {
+    const username = req.header('Authorization')
     const uid = req.params.uid
 
     try {

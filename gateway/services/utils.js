@@ -12,6 +12,6 @@ export const generateQuery = (data) => {
 
 export const genUsernameHeaders = (username) => ({
     headers: {
-        'X-USER-NAME': String(username), 'Content-type': 'application/json'
+        'Authorization': String(username), 'Content-type': 'application/json'
     }
 })
