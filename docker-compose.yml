@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: ./bonus.Dockerfile
-    image: volodyalarin/rsoi-bonus
+    image: cr.yandex/crpc9qeoft236r8tfalm/rsoi-bonus
     restart: always
     ports:
       - "127.0.0.1:8050:8080"
@@ -36,7 +36,7 @@ services:
     build:
       context: .
       dockerfile: ./flight.Dockerfile
-    image: volodyalarin/rsoi-flight
+    image: cr.yandex/crpc9qeoft236r8tfalm/rsoi-flight
     restart: always
     ports:
       - "127.0.0.1:8060:8080"
@@ -49,7 +49,7 @@ services:
     build:
       context: .
       dockerfile: ./ticket.Dockerfile
-    image: volodyalarin/rsoi-ticket
+    image: cr.yandex/crpc9qeoft236r8tfalm/rsoi-ticket
     restart: always
     ports:
       - "127.0.0.1:8070:8080"
@@ -60,7 +60,7 @@ services:
         condition: service_healthy
   gateway:
     build: ./gateway
-    image: volodyalarin/rsoi-gateway
+    image: cr.yandex/crpc9qeoft236r8tfalm/rsoi-gateway
     restart: always
     ports:
       - "127.0.0.1:8080:8080"
