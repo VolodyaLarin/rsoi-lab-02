@@ -49,7 +49,6 @@ jobs:
 
       - name: 'DB deploy'
         run: |
-          helm status db
           export HELM_OPERATION=install
           helm --kubeconfig ./kube.config status db
           if [ $? -eq 0 ]
