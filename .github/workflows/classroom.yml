@@ -39,19 +39,19 @@ jobs:
       - name: Docker Publish
         run: docker compose push
 
-      - name: 'DB deploy'
-        uses: 'deliverybot/helm@master'
-        with:
-          release: 'db'
-          namespace: 'default'
-          chart: './k8s/postgres-chart'
-          token: '${{ github.token }}'
-          values: |
-            users:
-              - name: program
-                password: ${{ secrets.DB_PASSWORD }}
-        env:
-          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+#      - name: 'DB deploy'
+#        uses: 'deliverybot/helm@master'
+#        with:
+#          release: 'db'
+#          namespace: 'default'
+#          chart: './k8s/postgres-chart'
+#          token: '${{ github.token }}'
+#          values: |
+#            users:
+#              - name: program
+#                password: ${{ secrets.DB_PASSWORD }}
+#        env:
+#          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 #      - name: deploy postgres to cluster
 #        uses: wahyd4/kubectl-helm-action@master
 #        env:
