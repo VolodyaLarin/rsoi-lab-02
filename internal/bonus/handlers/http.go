@@ -18,7 +18,7 @@ func NewBonusHandlerV1(uc *usecase.BonusUsecase) *BonusHandlerV1 {
 }
 
 func (p BonusHandlerV1) RegisterRoutes(router gin.IRouter) {
-	router.Use(jwt_auth.AuthMiddleware)
+	router.Use(jwt_auth.AuthMiddleware())
 
 	router.GET("/bonus/", p.list)
 	router.POST("/bonus/", p.create)

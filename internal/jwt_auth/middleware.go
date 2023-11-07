@@ -1,6 +1,7 @@
 package jwt_auth
 
 import (
+	"context"
 	"github.com/MicahParks/keyfunc"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -17,12 +18,10 @@ func (c CustomClaimsExample) Valid() error {
 	return nil
 }
 
-func AuthMiddleware(c *gin.Context) {
-	tokenString := strings.Replace(c.GetHeader("Authorization"), "Bearer ", "", 20)
-
+func AuthMiddleware() gin.HandlerFunc {
 	jwksURL := "https://dev-y3hp3rut2qnex3gw.us.auth0.com/.well-known/jwks.json"
 	options := keyfunc.Options{
-		Ctx: c,
+		Ctx: context.Background(),
 		RefreshErrorHandler: func(err error) {
 			log.Printf("There was an error with the jwt.Keyfunc\nError: %s", err.Error())
 		},
@@ -38,18 +37,26 @@ func AuthMiddleware(c *gin.Context) {
 		log.Fatalf("Failed to create JWKS from resource at the given URL.\nError: %s", err.Error())
 	}
 
-	claims := jwt.MapClaims{}
-	_, _ = jwt.ParseWithClaims(tokenString, claims, jwks.Keyfunc)
+	return func(c *gin.Context) {
+		tokenString := strings.Replace(c.GetHeader("Authorization"), "Bearer ", "", 20)
 
-	username, ok := claims["name"].(string)
-	log.Warning(username, ok)
+		claims := jwt.MapClaims{}
+		_, err = jwt.ParseWithClaims(tokenString, claims, jwks.Keyfunc)
+		if err != nil {
+			log.Warning("Auth warning", err)
+		}
 
-	if !ok {
-		c.JSON(403, gin.H{})
-		return
+		username, ok := claims["name"].(string)
+		log.Warning(username, ok)
+
+		if !ok {
+			c.JSON(403, gin.H{})
+			return
+		}
+
+		c.Set("x-username", username)
+
+		c.Next()
 	}
 
-	c.Set("x-username", username)
-
-	c.Next()
 }

@@ -6,7 +6,8 @@ COPY ./cmd ./cmd
 COPY ./internal ./internal
 
 RUN go build -o ./.bin/flight ./cmd/flight/main.go
-FROM debian:12-slim
+FROM debian:12
 WORKDIR /root
+RUN apt-get update && apt-get install ca-certificates -y && update-ca-certificates
 COPY --from=build /app/.bin/flight ./app
 CMD ["./app"]

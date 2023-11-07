@@ -19,7 +19,7 @@ func NewTicketHandlerV1(uc *usecase.TicketUsecase) *TicketHandlerV1 {
 }
 
 func (p TicketHandlerV1) RegisterRoutes(router gin.IRouter) {
-	router.Use(jwt_auth.AuthMiddleware)
+	router.Use(jwt_auth.AuthMiddleware())
 
 	router.GET("/tickets/", p.list)
 	router.POST("/tickets/", p.create)
