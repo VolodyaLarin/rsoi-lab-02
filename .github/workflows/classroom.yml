@@ -1,8 +1,7 @@
 name: GitHub Classroom Workflow
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
     branches:
       - master
@@ -17,42 +16,73 @@ jobs:
 
       - uses: docker/setup-buildx-action@v2
 
-      # TODO build and run unit tests
-
-      - name: Build images
-        timeout-minutes: 10
-        run: docker compose build
-
-      - name: Run containers
-        timeout-minutes: 5
+      - name: Setup Go 1.20
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Run Tests
         run: |
-          docker compose up -d
-          ./scripts/wait-script.sh
+          go mod download
+          go install github.com/jstemmer/go-junit-report@latest
+          go test -v ./... | go-junit-report -set-exit-code > report.xml
+        continue-on-error: true
+
+      - name: Docker build
+        timeout-minutes: 10
+        run:  docker compose build
+
+      - name: Docker Hub login
         env:
-          WAIT_PORTS: 8080,8070,8060,8050
+          CRYANDEX_PASSWORD: ${{ secrets.CRYANDEX_PASSWORD }}
+        run: echo "$CRYANDEX_PASSWORD" | docker login -u oauth --password-stdin cr.yandex
+
+      - name: Docker Publish
+        run: docker compose push
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Prepare Kube config
+        env:
+          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+          KUBECONFIG_CA_FILE: '${{ secrets.KUBECONFIG_CA }}'
+        run: |
+          echo "$KUBECONFIG_FILE" > ./kube.config 
+          echo "$KUBECONFIG_CA_FILE" > ./ca.pem 
+
+      - name: 'DB deploy'
+        run: |
+          export HELM_OPERATION=install
+          helm --kubeconfig ./kube.config status db
+          if [ $? -eq 0 ]
+            then HELM_OPERATION=upgrade
+          fi
+          helm --kubeconfig ./kube.config $HELM_OPERATION db ./k8s/postgres-chart
+      - name: 'App deploy'
+        env:
+          POSTGRES_PASSWORD: 'test'
+        run: |
+          export HELM_OPERATION=install
+          helm --kubeconfig ./kube.config status my-app
+          if [ $? -eq 0 ]
+            then HELM_OPERATION=upgrade
+          fi
+          helm --kubeconfig ./kube.config $HELM_OPERATION my-app ./k8s/my-app \
+          --set services.ticket.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=postgres port=5432" \
+          --set services.flight.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=flights port=5432" \
+          --set services.bonus.env.DB_DSN="host=db-service user=program password=test dbname=postgres port=5432 user=program password=$POSTGRES_PASSWORD dbname=privileges port=5432"
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
-          # TODO insert your variant
-          collection: <variant>/postman/collection.json
-          environment: <variant>/postman/environment.json
+          collection: v1/postman/collection.json
+          environment: v1/postman/environment.json
           delayRequest: 100
           reporters: '[ "cli" ]'
 
       - uses: education/autograding@v1
         id: autograder
         continue-on-error: true
-
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
-        with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 2
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
 
       - name: Stop containers
         if: always()
